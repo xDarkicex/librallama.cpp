@@ -1,0 +1,197 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    ":dependencyDashboard",
+    ":semanticCommits",
+    ":separatePatchReleases"
+  ],
+  "schedule": [
+    "before 4am on monday"
+  ],
+  "timezone": "America/New_York",
+  "labels": [
+    "dependencies"
+  ],
+  "assignees": [],
+  "reviewers": [],
+  "prHourlyLimit": 2,
+  "prConcurrentLimit": 10,
+  "branchConcurrentLimit": 20,
+  "packageRules": [
+    {
+      "matchManagers": [
+        "gomod"
+      ],
+      "groupName": "Go dependencies",
+      "addLabels": [
+        "go",
+        "dependencies"
+      ],
+      "schedule": [
+        "before 4am on monday"
+      ],
+      "minimumReleaseAge": "3 days"
+    },
+    {
+      "matchPackageNames": [
+        "go"
+      ],
+      "groupName": "Go version",
+      "addLabels": [
+        "go-version"
+      ],
+      "schedule": [
+        "before 4am on the first day of the month"
+      ],
+      "minimumReleaseAge": "30 days"
+    },
+    {
+      "matchManagers": [
+        "github-actions"
+      ],
+      "groupName": "GitHub Actions",
+      "addLabels": [
+        "github-actions",
+        "dependencies"
+      ],
+      "schedule": [
+        "before 4am on monday"
+      ],
+      "minimumReleaseAge": "3 days",
+      "pinDigests": true
+    },
+    {
+      "matchDepTypes": [
+        "devDependencies"
+      ],
+      "automerge": true,
+      "automergeType": "pr",
+      "ignoreTests": false
+    },
+    {
+      "matchUpdateTypes": [
+        "patch"
+      ],
+      "automerge": true,
+      "automergeType": "pr",
+      "ignoreTests": false
+    },
+    {
+      "matchPackageNames": [
+        "ggml-org/llama.cpp"
+      ],
+      "groupName": "llama.cpp",
+      "addLabels": [
+        "llama.cpp",
+        "dependencies"
+      ],
+      "schedule": [
+        "before 4am on monday"
+      ],
+      "minimumReleaseAge": "1 days",
+      "semanticCommitType": "feat",
+      "semanticCommitScope": "deps",
+      "commitMessageTopic": "llama.cpp",
+      "postUpgradeTasks": {
+        "commands": [
+          "chmod +x scripts/increment-version.sh",
+          "./scripts/increment-version.sh minor"
+        ],
+        "fileFilters": [
+          "Makefile",
+          "gollama.go"
+        ],
+        "executionMode": "branch"
+      }
+    },
+    {
+      "description": "Pin go-github to v68.x - last version supporting Go 1.21",
+      "matchPackageNames": [
+        "github.com/google/go-github/v68"
+      ],
+      "allowedVersions": "<=68.999.999",
+      "addLabels": [
+        "go",
+        "dependencies"
+      ]
+    }
+  ],
+  "vulnerabilityAlerts": {
+    "enabled": true,
+    "schedule": [
+      "at any time"
+    ],
+    "addLabels": [
+      "security"
+    ]
+  },
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "Update LLAMA_CPP_BUILD in GitHub workflows",
+      "managerFilePatterns": [
+        "/^\\.github/workflows/.*\\.ya?ml$/"
+      ],
+      "matchStrings": [
+        "LLAMA_CPP_BUILD: ['\"]?(?<currentValue>[^'\"\\s]+)['\"]?"
+      ],
+      "datasourceTemplate": "github-tags",
+      "depNameTemplate": "ggml-org/llama.cpp",
+      "extractVersionTemplate": "^(?<version>.*)$"
+    },
+    {
+      "customType": "regex",
+      "description": "Update LLAMA_CPP_BUILD in Makefile",
+      "managerFilePatterns": [
+        "Makefile"
+      ],
+      "matchStrings": [
+        "LLAMA_CPP_BUILD \\?= (?<currentValue>[^\\s]+)"
+      ],
+      "datasourceTemplate": "github-tags",
+      "depNameTemplate": "ggml-org/llama.cpp",
+      "extractVersionTemplate": "^(?<version>.*)$"
+    },
+    {
+      "customType": "regex",
+      "description": "Update LLAMA_CPP_BUILD in documentation",
+      "managerFilePatterns": [
+        "CONTRIBUTING.md",
+        "docs/BUILD.md"
+      ],
+      "matchStrings": [
+        "export LLAMA_CPP_BUILD=(?<currentValue>[^\\s]+)"
+      ],
+      "datasourceTemplate": "github-tags",
+      "depNameTemplate": "ggml-org/llama.cpp",
+      "extractVersionTemplate": "^(?<version>.*)$"
+    },
+    {
+      "customType": "regex",
+      "description": "Update LlamaCppBuild in gollama.go",
+      "managerFilePatterns": [
+        "gollama.go"
+      ],
+      "matchStrings": [
+        "LlamaCppBuild = \"(?<currentValue>[^\"]+)\""
+      ],
+      "datasourceTemplate": "github-tags",
+      "depNameTemplate": "ggml-org/llama.cpp",
+      "extractVersionTemplate": "^(?<version>.*)$"
+    }
+  ],
+  "ignoreDeps": [
+    "github.com/xDarkicex/librallama.cpp"
+  ],
+  "ignorePaths": [
+    "build/**",
+    "libs/**",
+    "models/**"
+  ],
+  "commitMessageTopic": "{{depName}}",
+  "commitMessageExtra": "to {{newVersion}}",
+  "commitMessageSuffix": "",
+  "prBodyTemplate": "{{{header}}}{{{table}}}{{{notes}}}{{{changelogs}}}",
+  "rebaseWhen": "conflicted"
+}
